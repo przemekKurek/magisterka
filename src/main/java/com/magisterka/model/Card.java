@@ -4,9 +4,9 @@ import lombok.Data;
 
 @Data
 public class Card {
-    private int cardNumber;
+    private Integer cardNumber;
 
-    public Card(int cardNumber) {
+    public Card(Integer cardNumber) {
         this.cardNumber = cardNumber;
     }
 
