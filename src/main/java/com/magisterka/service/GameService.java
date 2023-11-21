@@ -95,7 +95,7 @@ public class GameService {
     }
 
     private void sortCardsDescending(List<Card> cards) {
-        Collections.sort(cards, Comparator.comparing(Card::getCardNumber, Comparator.reverseOrder()));
+        cards.sort(Comparator.comparing(Card::getCardNumber, Comparator.reverseOrder()));
     }
 
     private void handlePlayer1WinsWithStrategy(Player player1, Player player2) {
@@ -109,6 +109,8 @@ public class GameService {
             sortCardsDescending(cardsToGet);
         } else if (getStrategy(player1) == 'L') {
             sortCardsAscending(cardsToGet);
+        } else if (getStrategy(player1) == 'R') {
+            shuffleDeck(cardsToGet);
         }
         player1.getCards().addAll(cardsToGet);
         player1.winCounterIncrement();
@@ -198,9 +200,9 @@ public class GameService {
     }
 
     public void getStatistics(String strategy) {
-        Integer player1WinsCounter = 0;
-        Integer player2WinsCounter = 0;
-        Integer drawCounter = 0;
+        int player1WinsCounter = 0;
+        int player2WinsCounter = 0;
+        int drawCounter = 0;
         for (int i = 0; i < 100000; i++) {
             Integer result = gameWithStrategy(strategy);
             if (result == 1) {
