@@ -20,7 +20,12 @@ public class GameController {
     }
 
     @GetMapping(value = "/two/{strategy}")
-    public void gameWithStrategy(@PathVariable String strategy) {
-         gameService.gameWithStrategy(strategy);
+    public Integer gameWithStrategy(@PathVariable String strategy) {
+        return gameService.gameWithStrategy(strategy);
+    }
+
+    @GetMapping(value = "/two/{strategy}/statistics")
+    public void gameWithStrategyForStatistics(@PathVariable String strategy) {
+         gameService.getStatistics(strategy);
     }
 }

@@ -39,37 +39,47 @@ public class GameService {
 
 
     private void handleWar(Player player1, Player player2, boolean firstWar, List<Card> warCards) {
-        if(firstWar) {
-            warCards = new ArrayList<>();
-        }
+        Integer[] cardNumbers = new Integer[2];
 
-        // Each player puts three cards face down
-        for (int i = 0; i < 3; i++) {
-            if (!player1.getCards().isEmpty() && !player2.getCards().isEmpty()) {
-                warCards.add(player1.getCards().get(0));
-                warCards.add(player2.getCards().get(0));
-                player1.getCards().remove(0);
-                player2.getCards().remove(0);
+        setCardsForWar(player1, player2, warCards, firstWar, cardNumbers);
 
-            }
-        }
-        // TODO poprawić wojnę
-        // If one player runs out of cards, they lose the war
-        if (player1.getCards().isEmpty() && !player2.getCards().isEmpty()) {
+        if (isDeckEmpty(player1) && !isDeckEmpty(player2)) {
             player2.getCards().addAll(warCards);
-        } else if (!player1.getCards().isEmpty() && player2.getCards().isEmpty()) {
+        } else if (!isDeckEmpty(player1) && isDeckEmpty(player2)) {
             player1.getCards().addAll(warCards);
-        } else if (!player1.getCards().isEmpty() && !player2.getCards().isEmpty()) {
-            // Compare the next face-up cards after the war cards have been placed face down
-            if (player1.getCards().get(0).getCardNumber() / 4 > player2.getCards().get(0).getCardNumber() / 4) {
+        } else if (!isDeckEmpty(player1) && !isDeckEmpty(player2)) {
+            if (cardNumbers[0] / 4 > cardNumbers[1] / 4) {
                 player1.getCards().addAll(warCards);
-            } else if (player1.getCards().get(0).getCardNumber() / 4 < player2.getCards().get(0).getCardNumber() / 4) {
+            } else if (cardNumbers[0] / 4 < cardNumbers[1] / 4) {
                 player2.getCards().addAll(warCards);
             } else {
-                // If another tie, you can recursively call handleWar
                 handleWar(player1, player2, false, warCards);
             }
         }
+    }
+
+    private void setCardsForWar(Player player1, Player player2, List<Card> warCards, boolean isFirstWar, Integer[] cardNumbers) {
+        int cardsToPlay = 2;
+        if (isFirstWar) {
+            cardsToPlay = 3;
+        }
+        // Each player puts three cards face down
+        for (int i = 1; i <= cardsToPlay; i++) {
+            if (!player1.getCards().isEmpty() && !player2.getCards().isEmpty()) {
+                warCards.add(player1.getCards().get(0));
+                warCards.add(player2.getCards().get(0));
+                if (i == cardsToPlay) {
+                    cardNumbers[0] = player1.getCards().get(0).getCardNumber();
+                    cardNumbers[1] = player2.getCards().get(0).getCardNumber();
+                }
+                player1.getCards().remove(0);
+                player2.getCards().remove(0);
+            }
+        }
+    }
+
+    private boolean isDeckEmpty(Player player) {
+        return player.getCards().isEmpty();
     }
 
     private void handlePlayer1Wins(Player player1, Player player2) {
@@ -96,9 +106,9 @@ public class GameService {
         cardsToGet.add(player2Card);
         removeCards(player1, player2);
         if (getStrategy(player1) == 'H') {
-            sortCardsAscending(cardsToGet);
-        } else if (getStrategy(player1) == 'L') {
             sortCardsDescending(cardsToGet);
+        } else if (getStrategy(player1) == 'L') {
+            sortCardsAscending(cardsToGet);
         }
         player1.getCards().addAll(cardsToGet);
         player1.winCounterIncrement();
@@ -133,7 +143,7 @@ public class GameService {
         return cards;
     }
 
-    public static void shuffleDeck(List<Card> cards) {
+    private static void shuffleDeck(List<Card> cards) {
         Collections.shuffle(cards);
     }
 
@@ -154,7 +164,7 @@ public class GameService {
     }
 
 
-    public void gameWithStrategy(String strategy) {
+    public Integer gameWithStrategy(String strategy) {
         List<Card> cards = initializeDeck();
         Player player1 = new Player();
         Player player2 = new Player();
@@ -162,7 +172,7 @@ public class GameService {
         assignCardsToPlayers(cards, player1, player2);
         int counter = 0;
         int warCounter = 0;
-        while (playerHasCards(player1) && playerHasCards(player2) && counter < 10000) {
+        while (playerHasCards(player1) && playerHasCards(player2) && counter < 100000) {
             if (getPlayerCard(player1).getCardNumber() / 4 > getPlayerCard(player2).getCardNumber() / 4) {
                 handlePlayer1WinsWithStrategy(player1, player2);
             } else if (getPlayerCard(player1).getCardNumber() / 4 == getPlayerCard(player2).getCardNumber() / 4) {
@@ -173,8 +183,39 @@ public class GameService {
             }
             counter++;
         }
-        log.info("Player1 has " + player1.getCards().size() + " cards.");
-        log.info("Player2 has " + player2.getCards().size() + " cards.");
-        log.info("War counter " + warCounter);
+//        log.info("Player1 has " + player1.getCards().size() + " cards.");
+//        log.info("Player2 has " + player2.getCards().size() + " cards.");
+//        log.info("War counter " + warCounter);
+//        log.info("Round counter " + counter);
+        if (player2.getCards().isEmpty()) {
+            return 1;
+        } else if (player1.getCards().isEmpty()) {
+            return 2;
+        } else {
+            return 0;
+        }
+
+    }
+
+    public void getStatistics(String strategy) {
+        Integer player1WinsCounter = 0;
+        Integer player2WinsCounter = 0;
+        Integer drawCounter = 0;
+        for (int i = 0; i < 100000; i++) {
+            Integer result = gameWithStrategy(strategy);
+            if (result == 1) {
+                player1WinsCounter++;
+            } else if (result == 2) {
+                player2WinsCounter++;
+            } else if (result == 0) {
+                drawCounter++;
+            }
+            if (i % 1000 == 0) {
+                log.info("Computed " + i / 1000 + "%");
+            }
+        }
+        log.info("Player 1 wins: " + player1WinsCounter);
+        log.info("Player 2 wins: " + player2WinsCounter);
+        log.info("Draws: " + drawCounter);
     }
 }
