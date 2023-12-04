@@ -1,15 +1,17 @@
 package com.magisterka.web;
 
+import com.magisterka.model.Statistics;
+import com.magisterka.model.dto.PlayersStrategyDTO;
 import com.magisterka.service.GameService;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/game")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class GameController {
 
     private final GameService gameService;
@@ -24,8 +26,19 @@ public class GameController {
         return gameService.gameWithStrategy(strategy);
     }
 
-    @GetMapping(value = "/two/{strategy}/statistics")
-    public void gameWithStrategyForStatistics(@PathVariable String strategy) {
-         gameService.getStatistics(strategy);
+    @GetMapping(value = "/one/{strategy}/statistics")
+    public Statistics gameWithStrategyForStatistics(@PathVariable String strategy) {
+         return gameService.getStatistics(strategy);
     }
+
+    @PostMapping(value = "/statistics")
+    public Statistics gameWithStrategyForStatistics(@RequestBody PlayersStrategyDTO playersStrategyDTO) {
+        return gameService.getStatisticsForTwoPlayers(playersStrategyDTO);
+    }
+
+    @GetMapping(value = "/compare/{strategy}")
+    public List<Statistics> compareStrategyWithBasicStrategies(@PathVariable String strategy) {
+        return gameService.compareStrategyWithBasicStrategies(strategy);
+    }
+
 }
