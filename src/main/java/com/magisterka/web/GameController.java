@@ -2,6 +2,7 @@ package com.magisterka.web;
 
 import com.magisterka.model.Statistics;
 import com.magisterka.model.dto.PlayersStrategyDTO;
+import com.magisterka.model.dto.StrengthDTO;
 import com.magisterka.service.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,11 @@ public class GameController {
     @PostMapping(value = "/statistics")
     public Statistics gameWithStrategyForStatistics(@RequestBody PlayersStrategyDTO playersStrategyDTO) {
         return gameService.getStatisticsForTwoPlayers(playersStrategyDTO);
+    }
+
+    @PostMapping(value = "/strength-comparison")
+    public Statistics compareStrength(@RequestBody StrengthDTO strengthDTO) {
+        return gameService.compareStrength(strengthDTO);
     }
 
     @GetMapping(value = "/compare/{strategy}")
