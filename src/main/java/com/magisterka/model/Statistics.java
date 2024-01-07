@@ -11,4 +11,5 @@ public class Statistics {
     private double draws;
     private String firstPlayerStrategy;
     private String secondPlayerStrategy;
+    private double averageAmountOfRounds;
 }

@@ -110,27 +110,28 @@ public class GameService {
         cardsToGet.add(player2Card);
         removeCards(player1, player2);
         if (hasPlayer1Won) {
-            sortCardsAccordingToStrategy(player1, player2, cardsToGet);
+            sortCardsAccordingToStrategy(player1, player2, cardsToGet, true);
             player1.getCards().addAll(cardsToGet);
             player1.winCounterIncrement();
         } else {
-            sortCardsAccordingToStrategy(player2, player1, cardsToGet);
+            sortCardsAccordingToStrategy(player1, player2, cardsToGet, false);
             player2.getCards().addAll(cardsToGet);
             player2.winCounterIncrement();
         }
     }
 
-    private void sortCardsAccordingToStrategy(Player player1, Player player2, List<Card> cardsToGet) {
-        if (getStrategy(player1) == 'H') {
+    private void sortCardsAccordingToStrategy(Player player1, Player player2, List<Card> cardsToGet, boolean hasPlayer1Won) {
+        Player winnerOfTheRound = hasPlayer1Won ? player1 : player2;
+        if (getStrategy(winnerOfTheRound) == 'H') {
             sortCardsDescending(cardsToGet);
-        } else if (getStrategy(player1) == 'L') {
+        } else if (getStrategy(winnerOfTheRound) == 'L') {
             sortCardsAscending(cardsToGet);
-        } else if (getStrategy(player1) == 'R') {
+        } else if (getStrategy(winnerOfTheRound) == 'R') {
             shuffleDeck(cardsToGet);
-        } else if (getStrategy(player1) == 'G' || getStrategy(player1) == 'A' || getStrategy(player1) == 'N') {
-            if (getStrategy(player1) == 'G') {
+        } else if (getStrategy(winnerOfTheRound) == 'G' || getStrategy(winnerOfTheRound) == 'A' || getStrategy(winnerOfTheRound) == 'N') {
+            if (getStrategy(winnerOfTheRound) == 'G') {
                 distributeCardsGreedy(cardsToGet, player1, player2, 'G');
-            } else if (getStrategy(player1) == 'A') {
+            } else if (getStrategy(winnerOfTheRound) == 'A') {
                 distributeCardsGreedy(cardsToGet, player1, player2, 'A');
             } else {
                 distributeCardsGreedy(cardsToGet, player1, player2, 'N');
@@ -296,7 +297,7 @@ public class GameService {
         return stats;
     }
 
-    public Integer gameWithStrategies(PlayersStrategyDTO playersStrategyDTO) {
+    public Integer[] gameWithStrategies(PlayersStrategyDTO playersStrategyDTO) {
         List<Card> cards = initializeDeck();
         Player player1 = new Player();
         Player player2 = new Player();
@@ -305,7 +306,7 @@ public class GameService {
         assignCardsToPlayers(cards, player1, player2);
         int counter = 0;
         int warCounter = 0;
-        while (playerHasCards(player1) && playerHasCards(player2) && counter < 100000) {
+        while (playerHasCards(player1) && playerHasCards(player2) && counter < 10000) {
             if (getPlayerCard(player1).getRank() > getPlayerCard(player2).getRank()) {
                 handlePlayerWinWithStrategy(player1, player2, true);
             } else if (Objects.equals(getPlayerCard(player1).getRank(), getPlayerCard(player2).getRank())) {
@@ -320,33 +321,39 @@ public class GameService {
         log.info("Player2 has " + player2.getCards().size() + " cards.");
         log.info("War counter " + warCounter);
         log.info("Round counter " + counter);
+        Integer[] result = new Integer[2];
         if (player2.getCards().isEmpty()) {
-            return 1;
+            result[0] = 1;
+            result[1] = counter;
         } else if (player1.getCards().isEmpty()) {
-            return 2;
+            result[0] = 2;
+            result[1] = counter;
         } else {
-            return 0;
+            result[0] = 0;
+            result[1] = counter;
         }
-
+        return result;
     }
 
     public Statistics getStatisticsForTwoPlayers(PlayersStrategyDTO playersStrategyDTO) {
         int player1WinsCounter = 0;
         int player2WinsCounter = 0;
         int drawCounter = 0;
-        int gameAmount = 1000;
+        int gameAmount = 10000;
+        int roundsCounter = 0;
         for (int i = 0; i < gameAmount; i++) {
-            Integer result = gameWithStrategies(playersStrategyDTO);
-            if (result == 1) {
+            Integer[] result = gameWithStrategies(playersStrategyDTO);
+            if (result[0] == 1) {
                 player1WinsCounter++;
-            } else if (result == 2) {
+            } else if (result[0] == 2) {
                 player2WinsCounter++;
-            } else if (result == 0) {
+            } else if (result[0] == 0) {
                 drawCounter++;
             }
             if (i % 1000 == 0) {
                 log.info("Computed " + i / 1000 + "%");
             }
+            roundsCounter += result[1];
         }
         Statistics stats = new Statistics();
         stats.setFirstPlayerWonGames(player1WinsCounter * 100.0 / gameAmount);
@@ -354,6 +361,7 @@ public class GameService {
         stats.setDraws(drawCounter * 100.0 / gameAmount);
         stats.setFirstPlayerStrategy(playersStrategyDTO.getFisrtPlayerStrategySequence());
         stats.setSecondPlayerStrategy(playersStrategyDTO.getSecondPlayerStrategySequence());
+        stats.setAverageAmountOfRounds(roundsCounter/gameAmount);
 
         return stats;
     }
