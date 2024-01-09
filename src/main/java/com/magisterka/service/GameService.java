@@ -130,32 +130,34 @@ public class GameService {
             shuffleDeck(cardsToGet);
         } else if (getStrategy(winnerOfTheRound) == 'G' || getStrategy(winnerOfTheRound) == 'A' || getStrategy(winnerOfTheRound) == 'N') {
             if (getStrategy(winnerOfTheRound) == 'G') {
-                distributeCardsGreedy(cardsToGet, player1, player2, 'G');
+                distributeCardsGreedy(cardsToGet, player1, player2, 'G', hasPlayer1Won);
             } else if (getStrategy(winnerOfTheRound) == 'A') {
-                distributeCardsGreedy(cardsToGet, player1, player2, 'A');
+                distributeCardsGreedy(cardsToGet, player1, player2, 'A', hasPlayer1Won);
             } else {
-                distributeCardsGreedy(cardsToGet, player1, player2, 'N');
+                distributeCardsGreedy(cardsToGet, player1, player2, 'N', hasPlayer1Won);
 
             }
         }
     }
 
-    private void distributeCardsGreedy(List<Card> cardsToGet, Player player1, Player player2, char greedyOption) {
-        if (player1.getCards().size() >= player2.getCards().size()) {
+    private void distributeCardsGreedy(List<Card> cardsToGet, Player player1, Player player2, char greedyOption, boolean hasPlayer1Won) {
+        Player winner = hasPlayer1Won ? player1 : player2;
+        Player loser = hasPlayer1Won ? player2 : player1;
+        if (winner.getCards().size() >= loser.getCards().size()) {
             shuffleDeck(cardsToGet);
         } else {
-            int player1DeckSize = player1.getCards().size();
-            List<Card> player2CardsToCompare = new ArrayList<>();
-            player2CardsToCompare.add(player2.getCards().get(player1DeckSize));
-            player2CardsToCompare.add(player2.getCards().get(player1DeckSize + 1));
+            int winnerDeckSize = winner.getCards().size();
+            List<Card> loserCardsToCompare = new ArrayList<>();
+            loserCardsToCompare.add(loser.getCards().get(winnerDeckSize));
+            loserCardsToCompare.add(loser.getCards().get(winnerDeckSize + 1));
             sortCardsAscending(cardsToGet);
             Integer c1 = cardsToGet.get(0).getRank();
             Integer c2 = cardsToGet.get(1).getRank();
-            Integer p1 = player2CardsToCompare.get(0).getRank();
-            Integer p2 = player2CardsToCompare.get(1).getRank();
-            long player1aces = player1.getCards().stream().filter(card -> card.getRank() == 12).count();
-            long player2aces = player2.getCards().stream().filter(card -> card.getRank() == 12).count();
-            boolean moreAces = player1aces > player2aces;
+            Integer p1 = loserCardsToCompare.get(0).getRank();
+            Integer p2 = loserCardsToCompare.get(1).getRank();
+            long winnerAces = winner.getCards().stream().filter(card -> card.getRank() == 12).count();
+            long loserAces = loser.getCards().stream().filter(card -> card.getRank() == 12).count();
+            boolean moreAces = winnerAces > loserAces;
             // b -> better, e -> equal, w - worse
             boolean bb = c1 > p1 && c2 > p2;
             boolean be = c1 > p1 && c2 == p2;
@@ -247,7 +249,7 @@ public class GameService {
         assignCardsToPlayers(cards, player1, player2);
         int counter = 0;
         int warCounter = 0;
-        while (playerHasCards(player1) && playerHasCards(player2) && counter < 100000) {
+        while (playerHasCards(player1) && playerHasCards(player2) && counter < 10000) {
             if (getPlayerCard(player1).getRank() > getPlayerCard(player2).getRank()) {
                 handlePlayerWinWithStrategy(player1, player2, true);
             } else if (Objects.equals(getPlayerCard(player1).getRank(), getPlayerCard(player2).getRank())) {
@@ -306,7 +308,7 @@ public class GameService {
         assignCardsToPlayers(cards, player1, player2);
         int counter = 0;
         int warCounter = 0;
-        while (playerHasCards(player1) && playerHasCards(player2) && counter < 10000) {
+        while (playerHasCards(player1) && playerHasCards(player2) && counter < 1000000) {
             if (getPlayerCard(player1).getRank() > getPlayerCard(player2).getRank()) {
                 handlePlayerWinWithStrategy(player1, player2, true);
             } else if (Objects.equals(getPlayerCard(player1).getRank(), getPlayerCard(player2).getRank())) {
@@ -350,8 +352,8 @@ public class GameService {
             } else if (result[0] == 0) {
                 drawCounter++;
             }
-            if (i % 1000 == 0) {
-                log.info("Computed " + i / 1000 + "%");
+            if (i % 10 == 0) {
+                log.info("Computed " + i / 10 + "%");
             }
             roundsCounter += result[1];
         }
@@ -389,7 +391,7 @@ public class GameService {
         int player1WinsCounter = 0;
         int player2WinsCounter = 0;
         int drawCounter = 0;
-        int gameAmount = 1000;
+        int gameAmount = 10000;
         for (int i = 0; i < gameAmount; i++) {
             Integer result = gameWithStrategiesForStrenghtComparison(strengthDTO);
             if (result == 1) {
@@ -419,10 +421,8 @@ public class GameService {
         Player player2 = new Player();
         player1.setStrategySequence(strengthDTO.getPlayersStrategyDTO().getFisrtPlayerStrategySequence());
         player2.setStrategySequence(strengthDTO.getPlayersStrategyDTO().getSecondPlayerStrategySequence());
-        List<Card> player1Cards = new ArrayList<>();
-        List<Card> player2Cards = new ArrayList<>();
-        player1Cards.addAll(strengthDTO.getPlayer1Cards());
-        player2Cards.addAll(strengthDTO.getPlayer2Cards());
+        List<Card> player1Cards = new ArrayList<>(strengthDTO.getPlayer1Cards());
+        List<Card> player2Cards = new ArrayList<>(strengthDTO.getPlayer2Cards());
         shuffleDeck(player1Cards);
         shuffleDeck(player2Cards);
         player1.setCards(player1Cards);
