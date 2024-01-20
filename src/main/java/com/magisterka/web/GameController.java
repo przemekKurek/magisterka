@@ -1,8 +1,9 @@
 package com.magisterka.web;
 
-import com.magisterka.model.Statistics;
+import com.magisterka.model.StatisticsDTO;
 import com.magisterka.model.dto.PlayersStrategyDTO;
 import com.magisterka.model.dto.StrengthDTO;
+import com.magisterka.service.CycleService;
 import com.magisterka.service.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 public class GameController {
 
     private final GameService gameService;
+    private final CycleService cycleService;
 
     @GetMapping(value = "/two")
     public int game() {
@@ -28,23 +30,33 @@ public class GameController {
     }
 
     @GetMapping(value = "/one/{strategy}/statistics")
-    public Statistics gameWithStrategyForStatistics(@PathVariable String strategy) {
+    public StatisticsDTO gameWithStrategyForStatistics(@PathVariable String strategy) {
          return gameService.getStatistics(strategy);
     }
 
     @PostMapping(value = "/statistics")
-    public Statistics gameWithStrategyForStatistics(@RequestBody PlayersStrategyDTO playersStrategyDTO) {
+    public StatisticsDTO gameWithStrategyForStatistics(@RequestBody PlayersStrategyDTO playersStrategyDTO) {
         return gameService.getStatisticsForTwoPlayers(playersStrategyDTO);
     }
 
     @PostMapping(value = "/strength-comparison")
-    public Statistics compareStrength(@RequestBody StrengthDTO strengthDTO) {
+    public StatisticsDTO compareStrength(@RequestBody StrengthDTO strengthDTO) {
         return gameService.compareStrength(strengthDTO);
     }
 
     @GetMapping(value = "/compare/{strategy}")
-    public List<Statistics> compareStrategyWithBasicStrategies(@PathVariable String strategy) {
+    public List<StatisticsDTO> compareStrategyWithBasicStrategies(@PathVariable String strategy) {
         return gameService.compareStrategyWithBasicStrategies(strategy);
+    }
+
+    @PostMapping(value = "/statistics-with-cycles")
+    public StatisticsDTO getStatisticsAndDetectCycles(@RequestBody PlayersStrategyDTO playersStrategyDTO) {
+        return cycleService.getStatisticsWithCyclesForTwoPlayers(playersStrategyDTO);
+    }
+
+    @PostMapping(value = "/statistics-with-breaking-cycles")
+    public StatisticsDTO getStatisticsWithBreakingCycles(@RequestBody PlayersStrategyDTO playersStrategyDTO) {
+        return cycleService.getStatisticsWithBreakingCyclesForTwoPlayers(playersStrategyDTO);
     }
 
 }
