@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class Player {
-    private List<Card> cards = new ArrayList<>();
+    private List<CardDTO> cards = new ArrayList<>();
     private String strategySequence;
     private Long winCounter = 0L;
 

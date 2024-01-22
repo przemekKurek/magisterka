@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Card {
+public class CardDTO {
     private Integer cardNumber;
 
     public String getSuit() {
